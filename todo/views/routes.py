@@ -38,8 +38,19 @@ def get_todo(todo_id):
 
 @api.route('/todos', methods=['POST'])
 def create_todo():
-    """Create a new todo item and return the created item"""
-    return jsonify(TEST_ITEM), 201
+    todo = Todo(
+        title=request.json.get('title'),
+        description=request.json.get('description'),
+        completed=request.json.get('completed', False),
+    )
+    if 'deadline_at' in request.json:
+        todo.deadline_at = datetime.fromisoformat(request.json.get('deadline_at'))
+
+    # Adds a new record to the database or will update an existing record
+    db.session.add(todo)
+    # Commits the changes to the database, this must be called for the changes to be saved
+    db.session.commit()
+    return jsonify(todo.to_dict()), 201
 
 @api.route('/todos/<int:todo_id>', methods=['PUT'])
 def update_todo(todo_id):
